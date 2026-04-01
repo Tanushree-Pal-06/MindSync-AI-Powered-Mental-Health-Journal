@@ -1,0 +1,34 @@
+/* ── Landing page dark theme tokens ── */
+.landing-page {
+  --landing-bg: 228 20% 8%;
+  --landing-text: 220 20% 92%;
+  --landing-muted: 220 12% 55%;
+  --landing-accent: 252 70% 65%;
+  --landing-card: 228 18% 12%;
+  --landing-card-border: 228 15% 18%;
+}
+
+.bg-landing-bg { background-color: hsl(var(--landing-bg)); }
+.text-landing-text { color: hsl(var(--landing-text)); }
+.text-landing-muted { color: hsl(var(--landing-muted)); }
+.text-landing-accent { color: hsl(var(--landing-accent)); }
+.bg-landing-accent { background-color: hsl(var(--landing-accent)); }
+
+.landing-glass-card {
+  background: hsl(var(--landing-card) / 0.6);
+  border: 1px solid hsl(var(--landing-card-border));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Override Navbar appearance inside landing */
+.landing-page nav {
+  font-family: var(--font-body);
+}
+
+/* Accent color utilities with opacity */
+.bg-landing-accent\/10 { background-color: hsl(var(--landing-accent) / 0.1); }
+.bg-landing-accent\/20 { background-color: hsl(var(--landing-accent) / 0.2); }
+.bg-landing-accent\/90 { background-color: hsl(var(--landing-accent) / 0.9); }
+.border-landing-accent\/20 { border-color: hsl(var(--landing-accent) / 0.2); }
+.text-landing-muted\/50 { color: hsl(var(--landing-muted) / 0.5); }

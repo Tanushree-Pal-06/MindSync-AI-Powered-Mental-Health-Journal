@@ -1,0 +1,393 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 228 25% 10%;
+    --foreground: 220 20% 92%;
+
+    --card: 228 22% 14%;
+    --card-foreground: 220 20% 92%;
+
+    --popover: 228 22% 14%;
+    --popover-foreground: 220 20% 92%;
+
+    --primary: 252 70% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 20% 20%;
+    --secondary-foreground: 252 60% 80%;
+
+    --muted: 228 18% 18%;
+    --muted-foreground: 220 15% 55%;
+
+    --accent: 260 30% 22%;
+    --accent-foreground: 260 50% 82%;
+
+    --destructive: 0 55% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 228 18% 20%;
+    --input: 228 18% 20%;
+    --ring: 252 70% 65%;
+
+    --radius: 0.75rem;
+
+    /* Custom tokens */
+    --emotion-joy: 45 90% 58%;
+    --emotion-sadness: 220 60% 60%;
+    --emotion-anger: 0 70% 58%;
+    --emotion-fear: 270 45% 60%;
+    --emotion-surprise: 30 80% 60%;
+    --emotion-love: 340 65% 65%;
+    --emotion-neutral: 210 15% 60%;
+
+    --gradient-calm: linear-gradient(135deg, hsl(252 70% 65% / 0.08), hsl(220 50% 50% / 0.1));
+    --gradient-hero: linear-gradient(160deg, hsl(228 25% 10%), hsl(240 20% 14%), hsl(252 25% 12%));
+    --gradient-card: linear-gradient(145deg, hsl(228 22% 14%), hsl(232 20% 16%));
+
+    --shadow-soft: 0 2px 20px -4px hsl(252 70% 65% / 0.15);
+    --shadow-card: 0 4px 24px -6px hsl(0 0% 0% / 0.25);
+    --shadow-hover: 0 8px 32px -8px hsl(252 70% 65% / 0.25);
+
+    --font-display: 'Playfair Display', serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+
+    --sidebar-background: 228 22% 12%;
+    --sidebar-foreground: 220 20% 92%;
+    --sidebar-primary: 252 70% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 228 18% 18%;
+    --sidebar-accent-foreground: 220 20% 92%;
+    --sidebar-border: 228 18% 20%;
+    --sidebar-ring: 252 70% 65%;
+  }
+
+  .dark {
+    --background: 232 28% 7%;
+    --foreground: 220 20% 94%;
+
+    --card: 232 24% 11%;
+    --card-foreground: 220 20% 94%;
+
+    --popover: 232 24% 11%;
+    --popover-foreground: 220 20% 94%;
+
+    --primary: 252 75% 70%;
+    --primary-foreground: 232 28% 7%;
+
+    --secondary: 244 22% 16%;
+    --secondary-foreground: 252 65% 82%;
+
+    --muted: 232 20% 15%;
+    --muted-foreground: 220 15% 50%;
+
+    --accent: 264 28% 18%;
+    --accent-foreground: 264 50% 85%;
+
+    --destructive: 0 55% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 232 20% 16%;
+    --input: 232 20% 16%;
+    --ring: 252 75% 70%;
+
+    --gradient-calm: linear-gradient(135deg, hsl(252 75% 70% / 0.06), hsl(220 50% 50% / 0.08));
+    --gradient-hero: linear-gradient(160deg, hsl(232 28% 7%), hsl(240 22% 10%), hsl(252 28% 9%));
+    --gradient-card: linear-gradient(145deg, hsl(232 24% 11%), hsl(236 22% 13%));
+
+    --shadow-soft: 0 2px 20px -4px hsl(0 0% 0% / 0.4);
+    --shadow-card: 0 4px 24px -6px hsl(0 0% 0% / 0.3);
+    --shadow-hover: 0 8px 32px -8px hsl(252 75% 70% / 0.2);
+
+    --sidebar-background: 232 24% 9%;
+    --sidebar-foreground: 220 20% 94%;
+    --sidebar-primary: 252 75% 70%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 232 20% 15%;
+    --sidebar-accent-foreground: 220 20% 94%;
+    --sidebar-border: 232 20% 16%;
+    --sidebar-ring: 252 75% 70%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  .card-calm {
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-calm-hover {
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+
+  .card-calm-hover:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+  }
+
+  .hero-gradient {
+    background: var(--gradient-hero);
+  }
+
+  .text-gradient-calm {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--emotion-love)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* ── Diary animated background ── */
+.diary-bg-container {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Breathing gradient orbs */
+.diary-bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.12;
+  will-change: transform, opacity;
+}
+
+.dark .diary-bg-orb {
+  opacity: 0.06;
+}
+
+.diary-bg-orb-1 {
+  width: 500px;
+  height: 500px;
+  top: -10%;
+  right: -5%;
+  background: hsl(var(--primary));
+  animation: orb-breathe-1 12s ease-in-out infinite;
+}
+
+.diary-bg-orb-2 {
+  width: 400px;
+  height: 400px;
+  bottom: 5%;
+  left: -8%;
+  background: hsl(var(--emotion-love));
+  animation: orb-breathe-2 15s ease-in-out infinite;
+}
+
+.diary-bg-orb-3 {
+  width: 300px;
+  height: 300px;
+  top: 40%;
+  left: 50%;
+  background: hsl(var(--emotion-joy));
+  animation: orb-breathe-3 18s ease-in-out infinite;
+}
+
+@keyframes orb-breathe-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.12; }
+  50% { transform: translate(-30px, 20px) scale(1.08); opacity: 0.18; }
+}
+
+@keyframes orb-breathe-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.10; }
+  50% { transform: translate(20px, -25px) scale(1.1); opacity: 0.16; }
+}
+
+@keyframes orb-breathe-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.08; }
+  50% { transform: translate(-15px, 15px) scale(1.05); opacity: 0.13; }
+}
+
+.dark .diary-bg-orb-1 { animation-name: orb-breathe-1-dark; }
+.dark .diary-bg-orb-2 { animation-name: orb-breathe-2-dark; }
+.dark .diary-bg-orb-3 { animation-name: orb-breathe-3-dark; }
+
+@keyframes orb-breathe-1-dark {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.06; }
+  50% { transform: translate(-30px, 20px) scale(1.08); opacity: 0.09; }
+}
+
+@keyframes orb-breathe-2-dark {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.05; }
+  50% { transform: translate(20px, -25px) scale(1.1); opacity: 0.08; }
+}
+
+@keyframes orb-breathe-3-dark {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.04; }
+  50% { transform: translate(-15px, 15px) scale(1.05); opacity: 0.06; }
+}
+
+/* Floating diary pages */
+.diary-page {
+  position: absolute;
+  width: 90px;
+  height: 120px;
+  background: hsl(var(--card));
+  border-radius: 4px 12px 12px 4px;
+  box-shadow: 2px 4px 16px hsl(var(--foreground) / 0.04);
+  opacity: 0;
+  will-change: transform, opacity;
+  transform-origin: left center;
+}
+
+.diary-page::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  background: hsl(var(--primary) / 0.08);
+  border-radius: 4px 0 0 4px;
+}
+
+.diary-page-lines {
+  position: absolute;
+  inset: 20px 14px 14px 18px;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 13px,
+    hsl(var(--primary) / 0.06) 13px,
+    hsl(var(--primary) / 0.06) 14px
+  );
+}
+
+.diary-page-1 {
+  top: 18%;
+  right: 8%;
+  animation: page-drift 22s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.diary-page-2 {
+  top: 55%;
+  right: 3%;
+  width: 75px;
+  height: 100px;
+  animation: page-drift 26s ease-in-out infinite;
+  animation-delay: -8s;
+}
+
+.diary-page-3 {
+  top: 35%;
+  right: 15%;
+  width: 65px;
+  height: 85px;
+  animation: page-drift 30s ease-in-out infinite;
+  animation-delay: -15s;
+}
+
+@keyframes page-drift {
+  0% {
+    transform: translateX(60px) rotate(8deg) scale(0.9);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.07;
+  }
+  50% {
+    transform: translateX(-40px) rotate(-3deg) scale(1);
+    opacity: 0.07;
+  }
+  92% {
+    opacity: 0.07;
+  }
+  100% {
+    transform: translateX(-120px) rotate(-8deg) scale(0.9);
+    opacity: 0;
+  }
+}
+
+/* Ghost handwritten text */
+.diary-ghost-text {
+  position: absolute;
+  font-family: 'Georgia', serif;
+  font-style: italic;
+  color: hsl(var(--foreground));
+  opacity: 0;
+  white-space: nowrap;
+  will-change: transform, opacity;
+  user-select: none;
+}
+
+.diary-ghost-1 {
+  top: 22%;
+  left: 5%;
+  font-size: 14px;
+  animation: ghost-float 20s ease-in-out infinite;
+}
+
+.diary-ghost-2 {
+  top: 60%;
+  right: 10%;
+  font-size: 12px;
+  animation: ghost-float 24s ease-in-out infinite;
+  animation-delay: -6s;
+}
+
+.diary-ghost-3 {
+  bottom: 20%;
+  left: 12%;
+  font-size: 13px;
+  animation: ghost-float 28s ease-in-out infinite;
+  animation-delay: -12s;
+}
+
+.diary-ghost-4 {
+  top: 42%;
+  left: 60%;
+  font-size: 16px;
+  letter-spacing: 2px;
+  animation: ghost-float 22s ease-in-out infinite;
+  animation-delay: -4s;
+}
+
+@keyframes ghost-float {
+  0%, 100% {
+    transform: translateY(8px) translateX(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.045;
+  }
+  50% {
+    transform: translateY(-8px) translateX(-10px);
+    opacity: 0.045;
+  }
+  85% {
+    opacity: 0.045;
+  }
+}
+
+/* Ensure main content sits above bg */
+.diary-bg-container ~ *,
+nav,
+main {
+  position: relative;
+  z-index: 1;
+}
