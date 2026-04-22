@@ -14,7 +14,7 @@ cur.execute('''
 
 
 cur.execute('''
-    ALTER TABLE entries ADD COLUMN emotion TEXT
+    ALTER TABLE entries ADD COLUMN emotion TEXT, user_id INTEGER
 ''')
 conn.commit()
 conn.close()

@@ -1,157 +1,248 @@
-import { motion } from 'framer-motion';
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, BarChart, Bar
-} from 'recharts';
-import { trendData, sentimentDistribution, mockEntries, emotionEmojis } from '@/lib/mockData';
-import type { Emotion } from '@/lib/mockData';
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  Legend,
+} from "recharts";
+import { Brain, Activity, PieChart as PieIcon } from "lucide-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.5 } }),
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.08, duration: 0.5 },
+  }),
 };
 
-const emotionFrequency: { name: string; count: number; gradientId: string }[] = [
-  { name: 'Joy', count: 5, gradientId: 'gradJoy' },
-  { name: 'Sadness', count: 3, gradientId: 'gradSadness' },
-  { name: 'Anger', count: 1, gradientId: 'gradAnger' },
-  { name: 'Neutral', count: 2, gradientId: 'gradNeutral2' },
-  { name: 'Love', count: 3, gradientId: 'gradLove' },
-  { name: 'Surprise', count: 2, gradientId: 'gradSurprise' },
+const COLORS = [
+  "#8b5cf6",
+  "#06b6d4",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#ec4899",
 ];
 
-// Find most frequent emotion
-const allEmotions = mockEntries.flatMap((e) => e.emotions);
-const emotionCounts: Record<string, number> = {};
-allEmotions.forEach((e) => {
-  emotionCounts[e.name] = (emotionCounts[e.name] || 0) + 1;
-});
-const mostFrequent = Object.entries(emotionCounts).sort((a, b) => b[1] - a[1])[0];
-
 const Insights = () => {
+  const [trendData, setTrendData] = useState<any[]>([]);
+  const [emotionCounts, setEmotionCounts] = useState<any[]>([]);
+  const [emotionDistribution, setEmotionDistribution] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:5000/insights")
+      .then((res) => res.json())
+      .then((data) => {
+        setTrendData(data.trendData);
+        setEmotionCounts(data.emotionCounts);
+        setEmotionDistribution(data.emotionDistribution);
+      })
+      .catch((err) => console.error(err));
+  }, []);
+
+  const totalEntries = emotionCounts.reduce(
+    (sum, item) => sum + item.count,
+    0
+  );
+
+  const topEmotion =
+    emotionCounts.length > 0
+      ? emotionCounts.reduce((a, b) =>
+          a.count > b.count ? a : b
+        ).emotion
+      : "None";
+
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-8">
-      <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp}>
-        <h1 className="mb-2 font-display text-3xl font-bold text-foreground">Emotional Insights</h1>
-        <p className="mb-8 text-muted-foreground">Discover patterns in your emotional journey.</p>
+    <div className="container mx-auto max-w-6xl px-4 py-8">
+
+      {/* HEADER */}
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        custom={0}
+        variants={fadeUp}
+        className="mb-8"
+      >
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-500 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
+          Emotional Insights
+        </h1>
+
+        <p className="mt-2 text-muted-foreground text-lg">
+          Beautiful analytics from your real journal data.
+        </p>
       </motion.div>
 
-      {/* Key Patterns */}
-      <motion.div initial="hidden" animate="visible" custom={1} variants={fadeUp} className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="card-calm rounded-xl p-5 text-center">
-          <span className="text-3xl">{emotionEmojis[mostFrequent[0] as Emotion]}</span>
-          <p className="mt-2 text-sm text-muted-foreground">Most Frequent Emotion</p>
-          <p className="text-lg font-semibold capitalize text-foreground">{mostFrequent[0]}</p>
-        </div>
-        <div className="card-calm rounded-xl p-5 text-center">
-          <span className="text-3xl">📊</span>
-          <p className="mt-2 text-sm text-muted-foreground">Weekly Mood</p>
-          <p className="text-lg font-semibold text-foreground">Mostly Positive</p>
-        </div>
-        <div className="card-calm rounded-xl p-5 text-center">
-          <span className="text-3xl">🔥</span>
-          <p className="mt-2 text-sm text-muted-foreground">Best Streak</p>
-          <p className="text-lg font-semibold text-foreground">7 Days</p>
-        </div>
-      </motion.div>
+      {/* TOP STATS */}
+      <div className="grid gap-5 md:grid-cols-3 mb-8">
 
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          custom={1}
+          variants={fadeUp}
+          className="rounded-2xl border border-border bg-card/70 backdrop-blur-xl p-6 shadow-xl"
+        >
+          <Brain className="mb-3 h-7 w-7 text-violet-500" />
+          <p className="text-sm text-muted-foreground">
+            Total Entries
+          </p>
+          <h2 className="text-3xl font-bold mt-1">
+            {totalEntries}
+          </h2>
+        </motion.div>
+
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          custom={2}
+          variants={fadeUp}
+          className="rounded-2xl border border-border bg-card/70 backdrop-blur-xl p-6 shadow-xl"
+        >
+          <Activity className="mb-3 h-7 w-7 text-cyan-500" />
+          <p className="text-sm text-muted-foreground">
+            Top Emotion
+          </p>
+          <h2 className="text-3xl font-bold mt-1 capitalize">
+            {topEmotion}
+          </h2>
+        </motion.div>
+
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          custom={3}
+          variants={fadeUp}
+          className="rounded-2xl border border-border bg-card/70 backdrop-blur-xl p-6 shadow-xl"
+        >
+          <PieIcon className="mb-3 h-7 w-7 text-emerald-500" />
+          <p className="text-sm text-muted-foreground">
+            Unique Emotions
+          </p>
+          <h2 className="text-3xl font-bold mt-1">
+            {emotionCounts.length}
+          </h2>
+        </motion.div>
+
+      </div>
+
+      {/* CHARTS */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Emotion Trend Line */}
-        <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp} className="card-calm rounded-xl p-6">
-          <h2 className="mb-4 font-display text-lg font-semibold text-foreground">Sentiment Over Time</h2>
-          <ResponsiveContainer width="100%" height={240}>
+
+        {/* LINE CHART */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          custom={4}
+          variants={fadeUp}
+          className="rounded-2xl border border-border bg-card/70 backdrop-blur-xl p-6 shadow-xl"
+        >
+          <h2 className="mb-4 text-xl font-semibold">
+            Emotion Trends Over Time
+          </h2>
+
+          <ResponsiveContainer width="100%" height={300}>
             <LineChart data={trendData}>
-              <defs>
-                <linearGradient id="gradLine" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#7c3aed" />
-                  <stop offset="100%" stopColor="#06b6d4" />
-                </linearGradient>
-                <linearGradient id="gradLineDot" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#a78bfa" />
-                  <stop offset="100%" stopColor="#7c3aed" />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-              <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '0.5rem', fontSize: '0.8rem' }} />
-              <Line type="monotone" dataKey="sentiment" stroke="url(#gradLine)" strokeWidth={3} dot={{ r: 5, fill: 'url(#gradLineDot)', stroke: '#7c3aed', strokeWidth: 1 }} />
+              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+              <XAxis dataKey="posted_at" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke="#8b5cf6"
+                strokeWidth={3}
+                dot={{ r: 4 }}
+              />
             </LineChart>
           </ResponsiveContainer>
         </motion.div>
 
-        {/* Sentiment Distribution Pie */}
-        <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp} className="card-calm rounded-xl p-6">
-          <h2 className="mb-4 font-display text-lg font-semibold text-foreground">Sentiment Distribution</h2>
-          <ResponsiveContainer width="100%" height={240}>
+        {/* PIE */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          custom={5}
+          variants={fadeUp}
+          className="rounded-2xl border border-border bg-card/70 backdrop-blur-xl p-6 shadow-xl"
+        >
+          <h2 className="mb-4 text-xl font-semibold">
+            Emotion Distribution
+          </h2>
+
+          <ResponsiveContainer width="100%" height={300}>
             <PieChart>
-              <defs>
-                <linearGradient id="gradPositive" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#34d399" />
-                  <stop offset="100%" stopColor="#06b6d4" />
-                </linearGradient>
-                <linearGradient id="gradNeutral" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#a78bfa" />
-                  <stop offset="100%" stopColor="#818cf8" />
-                </linearGradient>
-                <linearGradient id="gradNegative" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f472b6" />
-                  <stop offset="100%" stopColor="#ef4444" />
-                </linearGradient>
-              </defs>
-              <Pie data={sentimentDistribution} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={4} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                {sentimentDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
-                ))}
+              <Pie
+                data={emotionDistribution}
+                dataKey="count"
+                nameKey="emotion"
+                outerRadius={105}
+                innerRadius={55}
+                label
+              >
+                {emotionDistribution.map(
+                  (_: any, index: number) => (
+                    <Cell
+                      key={index}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  )
+                )}
               </Pie>
+
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
         </motion.div>
 
-        {/* Emotion Frequency Bar */}
-        <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp} className="card-calm rounded-xl p-6 md:col-span-2">
-          <h2 className="mb-4 font-display text-lg font-semibold text-foreground">Emotion Frequency</h2>
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={emotionFrequency}>
-              <defs>
-                <linearGradient id="gradJoy" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#fbbf24" />
-                  <stop offset="100%" stopColor="#f59e0b" />
-                </linearGradient>
-                <linearGradient id="gradSadness" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#60a5fa" />
-                  <stop offset="100%" stopColor="#3b82f6" />
-                </linearGradient>
-                <linearGradient id="gradAnger" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f87171" />
-                  <stop offset="100%" stopColor="#dc2626" />
-                </linearGradient>
-                <linearGradient id="gradNeutral2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#a78bfa" />
-                  <stop offset="100%" stopColor="#7c3aed" />
-                </linearGradient>
-                <linearGradient id="gradLove" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#fb7185" />
-                  <stop offset="100%" stopColor="#e11d48" />
-                </linearGradient>
-                <linearGradient id="gradSurprise" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#fb923c" />
-                  <stop offset="100%" stopColor="#ea580c" />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-              <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '0.5rem', fontSize: '0.8rem' }} />
-              <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-                {emotionFrequency.map((entry, index) => (
-                  <Cell key={`bar-${index}`} fill={`url(#${entry.gradientId})`} />
-                ))}
+        {/* BAR */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          custom={6}
+          variants={fadeUp}
+          className="rounded-2xl border border-border bg-card/70 backdrop-blur-xl p-6 shadow-xl md:col-span-2"
+        >
+          <h2 className="mb-4 text-xl font-semibold">
+            Total Emotion Counts
+          </h2>
+
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart data={emotionCounts}>
+              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+              <XAxis dataKey="emotion" />
+              <YAxis />
+              <Tooltip />
+
+              <Bar
+                dataKey="count"
+                radius={[10, 10, 0, 0]}
+              >
+                {emotionCounts.map(
+                  (_: any, index: number) => (
+                    <Cell
+                      key={index}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  )
+                )}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
+
       </div>
     </div>
   );

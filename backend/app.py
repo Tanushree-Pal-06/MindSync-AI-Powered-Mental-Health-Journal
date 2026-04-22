@@ -3,10 +3,16 @@ import sqlite3
 from flask import Flask, jsonify, request
 import librosa
 import numpy as np
+import pandas as pd
 import torch
 import whisper
 from transformers import AutoModelForAudioClassification, pipeline, AutoFeatureExtractor
+from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
+
 app=Flask(__name__)
+
+CORS(app)
 # Model for text based input 
 classifier=pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base",framework="pt" )
 
@@ -19,23 +25,144 @@ ser_model=AutoModelForAudioClassification.from_pretrained(model_name)
 whisper_model=whisper.load_model("base")
 
 
+def create_users_table():
+    conn = sqlite3.connect("diary.db")
+    cur = conn.cursor()
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        email TEXT UNIQUE,
+        password TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+@app.route('/insights', methods=['GET'])
+def insights():
+    conn = sqlite3.connect('diary.db')
+
+    query = """
+    SELECT posted_at, emotion
+    FROM entries
+    """
+
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+
+    if df.empty:
+        return jsonify({
+            "trendData": [],
+            "emotionCounts": [],
+            "emotionDistribution": []
+        })
+
+    # date only
+    df["posted_at"] = pd.to_datetime(df["posted_at"]).dt.date.astype(str)
+
+    # trend graph
+    trend = df.groupby(['posted_at', 'emotion']).size().reset_index(name='count')
+
+    trendData = trend.to_dict(orient="records")
+
+    # bar graph
+    emotion_counts = df['emotion'].value_counts().reset_index()
+    emotion_counts.columns = ['emotion', 'count']
+
+    emotionCounts = emotion_counts.to_dict(orient="records")
+
+    # pie graph same data
+    emotionDistribution = emotionCounts
+
+    return jsonify({
+        "trendData": trendData,
+        "emotionCounts": emotionCounts,
+        "emotionDistribution": emotionDistribution
+    })
+
 def analyzer(text):
-    res=classifier(text)
+    res = classifier(text)
     print(res)
-    return res[0]['label']
+    return res[0]
 
 
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
 
+    name = data['name']
+    email = data['email']
+    password = generate_password_hash(data['password'])
+
+    conn = sqlite3.connect("diary.db")
+    cur = conn.cursor()
+
+    try:
+        cur.execute(
+            "INSERT INTO users(name,email,password) VALUES(?,?,?)",
+            (name, email, password)
+        )
+        conn.commit()
+
+        return jsonify({
+            "status": "success",
+            "message": "User registered successfully"
+        })
+
+    except:
+        return jsonify({
+            "status": "error",
+            "message": "Email already exists"
+        })
+
+    finally:
+        conn.close()
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+
+    email = data['email']
+    password = data['password']
+
+    conn = sqlite3.connect("diary.db")
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM users WHERE email=?", (email,))
+    user = cur.fetchone()
+
+    conn.close()
+
+    if user and check_password_hash(user[3], password):
+        return jsonify({
+        "status": "success",
+        "message": "Login successful",
+        "name": user[1],
+        "user_id": user[0]
+})
+
+    return jsonify({
+        "status": "error",
+        "message": "Invalid credentials"
+    })        
 
 @app.route('/')
 def home():
     return "<h1>Welcome</h1>"
 
 
-def adder(text,emotion):
+def adder(text, emotion, user_id):
      conn=sqlite3.connect('diary.db')
      cur=conn.cursor()
-     cur.execute('''INSERT INTO entries  (entry,emotion) VALUES(?,?)''',(text,emotion))
+
+     cur.execute(
+         "INSERT INTO entries(entry,emotion,user_id) VALUES(?,?,?)",
+         (text, emotion, user_id)
+     )
+
      conn.commit()
      conn.close()
 
@@ -72,32 +199,62 @@ def voice_analyzer(filepath):
      
 
 
-@app.route('/addEntry',methods=['POST','GET'])
+@app.route('/addEntry', methods=['POST'])
 def add_entry():
-        res=request.get_json()
-        emotion=analyzer(res["text"])
-        if not res:
-         return {"error": "No text provided"}
+    res = request.get_json()
 
-        adder(res["text"],emotion)
-        return jsonify({
-    "message": "Entry received",
-    "status": "success",
-    "data": res["text"],
-    "emotion":emotion})
+    if not res or "text" not in res:
+        return jsonify({"error": "No text provided"}), 400
+
+    text = res["text"]
+
+    ai_result = analyzer(text)
+
+    emotion = ai_result["label"]
+    confidence = ai_result["score"]
+
+    # sentiment mapping
+    if emotion.lower() in ["joy", "love", "surprise"]:
+        sentiment = "Positive"
+    elif emotion.lower() in ["anger", "sadness", "fear", "disgust"]:
+        sentiment = "Negative"
+    else:
+        sentiment = "Neutral"
+
+    adder(res["text"], emotion, res["user_id"])
+
+    return jsonify({
+        "sentiment": sentiment,
+        "emotions": [
+            {
+                "name": emotion.lower(),
+                "confidence": confidence
+            }
+        ]
+    })
 
 
-@app.route('/getEntry',methods=['GET','POST'])
+@app.route('/getEntry',methods=['POST'])
 def get_entry():
-      rows=fetcher()
-      diary_entries=[ { "id":row[0],"entry":row[1],"emotion":row[2],"posted_at":row[3]}
-                     for row in rows]
+      data = request.get_json()
+      user_id = data["user_id"]
+
+      rows = fetcher(user_id)
+
+      diary_entries=[
+        {
+          "id":row[0],
+          "entry":row[1],
+          "emotion":row[2],
+          "posted_at":row[3]
+        }
+        for row in rows
+      ]
 
       return jsonify({
-        "message": "Entries fetched",
-        "status": "success",
+        "status":"success",
         "entries": diary_entries
-    })
+      })
 
 # speech to text function
 def speech_to_text(filepath):
@@ -183,4 +340,5 @@ def combine_emotions(text_emotion,tone_emotion):
 
 
 if __name__=='__main__':
+    create_users_table()
     app.run(debug=True)

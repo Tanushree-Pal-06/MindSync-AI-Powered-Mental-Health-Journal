@@ -12,6 +12,8 @@ import Insights from "./pages/Insights";
 import History from "./pages/History";
 import NotFound from "./pages/NotFound";
 import "@/styles/landing.css";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +35,8 @@ const AppLayout = () => {
         <Route path="/insights" element={<Insights />} />
         <Route path="/history" element={<History />} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
       </Routes>
     </div>
   );
