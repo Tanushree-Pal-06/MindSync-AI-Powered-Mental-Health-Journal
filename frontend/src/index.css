@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --background: 228 25% 10%;
+    --background: 228 25% 8%;
     --foreground: 220 20% 92%;
 
     --card: 228 22% 14%;
@@ -177,7 +177,7 @@
 }
 
 .dark .diary-bg-orb {
-  opacity: 0.06;
+  opacity: 0.035;
 }
 
 .diary-bg-orb-1 {

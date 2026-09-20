@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-import 
+
 app = Flask(__name__)
 
 # Core Configuration
@@ -99,6 +99,7 @@ def insights():
 
     rows = cur.fetchall()
     conn.close()
+    
 
     if not rows:
         return jsonify({
@@ -222,37 +223,50 @@ def insights():
             weekly_counter[row["emotion"].lower()] += 1
 
 
+        positive_emotions_weekly = {
+        "joy",
+        "love",
+        "gratitude",
+        "hope",
+        "hopeful",
+        "calm",
+        "content",
+        "happy",
+        "happiness",
+        "optimistic",
+        "peaceful",
+        "serenity",
+        "excitement",
+        "surprise",
+        "approval"
+    }
+
+    negative_emotions_weekly = {
+        "sadness",
+        "anger",
+        "fear",
+        "stress",
+        "anxiety",
+        "loneliness",
+        "frustration",
+        "guilt",
+        "depressed",
+        "despair",
+        "disgust",
+        "boredom",
+        "confusion",
+        "tiredness",
+        "nervousness"
+    }
+
     positive = sum(
         weekly_counter[e]
-        for e in [
-            "joy",
-            "love",
-            "gratitude",
-            "hope",
-            "hopeful",
-            "calm",
-            "content",
-            "happy",
-            "optimistic",
-            "peaceful",
-            "surprise"
-        ]
+        for e in positive_emotions_weekly
     )
 
     negative = sum(
         weekly_counter[e]
-        for e in [
-            "sadness",
-            "anger",
-            "fear",
-            "stress",
-            "anxiety",
-            "loneliness",
-            "frustration",
-            "guilt",
-            "depressed",
-            "disgust"
-        ]
+        for e in negative_emotions_weekly
     )
 
     neutral = weekly_counter["neutral"]

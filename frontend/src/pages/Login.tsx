@@ -25,8 +25,10 @@ const Login = () => {
 
       if (data.status === "success") {
         toast.success("Login Successful!", {
-          description: `Welcome back, ${data.name} 💜`,
-        });
+        description: `Welcome back, ${data.name} 💜`,
+        className: "text-gray-900",
+        descriptionClassName: "text-gray-600",
+      });
 
         localStorage.setItem("user_id", data.user_id);
         localStorage.setItem("name", data.name);

@@ -30,8 +30,10 @@ const Navbar = () => {
   localStorage.clear();
 
   toast.success("Logged out 👋", {
-    description: "See you again soon 💜",
-  });
+  description: "See you again soon 💜",
+  className: "text-gray-900",
+  descriptionClassName: "text-gray-600",
+});
 
   setTimeout(() => {
     navigate("/login");

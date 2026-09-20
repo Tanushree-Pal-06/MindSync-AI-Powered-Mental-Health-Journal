@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   LineChart,
   Line,
@@ -43,6 +44,7 @@ interface TrendData {
 }
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const username = localStorage.getItem("name") || "User";
   const [entries, setEntries] = useState<Entry[]>([]);
   const [trendData, setTrendData] = useState([]);
@@ -189,34 +191,51 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Latest Entry */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          custom={5}
-          variants={fadeUp}
-          className="card-calm rounded-xl p-6"
-        >
-          <h2 className="mb-4 font-display text-lg font-semibold text-foreground">
-            Latest Entry
-          </h2>
+      {/* Latest Entry */}
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        custom={5}
+        variants={fadeUp}
+        className="card-calm rounded-xl p-6"
+      >
+        <h2 className="mb-4 font-display text-lg font-semibold text-foreground">
+          Latest Entry
+        </h2>
 
-          {loading ? (
-            <p className="text-muted-foreground">Loading...</p>
-          ) : latestEntry ? (
-            <>
-              <p className="mb-3 text-sm leading-relaxed text-muted-foreground line-clamp-5">
-                {latestEntry.entry}
-              </p>
+        {loading ? (
+          <p className="text-muted-foreground">Loading...</p>
+        ) : latestEntry ? (
+          <>
+            <p className="mb-3 text-sm leading-relaxed text-muted-foreground line-clamp-5">
+              {latestEntry.entry}
+            </p>
 
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-sm capitalize text-primary">
-                {latestEntry.emotion}
-              </span>
-            </>
-          ) : (
-            <p className="text-muted-foreground">No entries yet.</p>
-          )}
-        </motion.div>
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-sm capitalize text-primary">
+              {latestEntry.emotion}
+            </span>
+          </>
+        ) : (
+          <div className="flex h-[120px] flex-col items-center justify-center text-center">
+            <div className="mb-2 text-2xl">✨</div>
+
+            <p className="text-base font-semibold text-white">
+              Your journal is waiting
+            </p>
+
+            <p className="mt-1 text-sm text-white/70">
+              Write your first thought and start your journey.
+            </p>
+
+            <button
+              onClick={() => navigate("/diary")}
+              className="mt-3 text-sm font-medium text-primary hover:underline"
+            >
+              Write your first entry →
+            </button>
+          </div>
+        )}
+      </motion.div>
 
         {/* Attractive Real Graph */}
         <motion.div
@@ -230,59 +249,78 @@ const Dashboard = () => {
             Emotion Trends
           </h2>
 
-          <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={trendData}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="hsl(var(--border))"
-              />
+          {trendData.length === 0 ? (
+  <div className="flex h-[240px] flex-col items-center justify-center text-center">
+    <p className="text-base font-medium text-foreground">
+      No entries yet
+    </p>
 
-              <XAxis
-                dataKey="date"
-                tick={{
-                  fontSize: 12,
-                  fill: 'hsl(var(--muted-foreground))',
-                }}
-              />
+    <p className="mt-1 text-sm text-muted-foreground">
+      Start journaling to see your emotion trends here.
+    </p>
 
-              <YAxis
-                tick={{
-                  fontSize: 12,
-                  fill: 'hsl(var(--muted-foreground))',
-                }}
-              />
+    <button
+      onClick={() => navigate("/diary")}
+      className="mt-4 text-sm font-medium text-primary hover:underline"
+    >
+      Start Journaling →
+    </button>
+  </div>
+) : (
+  <ResponsiveContainer width="100%" height={240}>
+    <LineChart data={trendData}>
+      <CartesianGrid
+        strokeDasharray="3 3"
+        stroke="hsl(var(--border))"
+      />
 
-              <Tooltip />
+      <XAxis
+        dataKey="date"
+        tick={{
+          fontSize: 12,
+          fill: 'hsl(var(--muted-foreground))',
+        }}
+      />
 
-              <Line
-                type="monotone"
-                dataKey="joy"
-                stroke="#f59e0b"
-                strokeWidth={3}
-              />
+      <YAxis
+        tick={{
+          fontSize: 12,
+          fill: 'hsl(var(--muted-foreground))',
+        }}
+      />
 
-              <Line
-                type="monotone"
-                dataKey="sadness"
-                stroke="#3b82f6"
-                strokeWidth={3}
-              />
+      <Tooltip />
 
-              <Line
-                type="monotone"
-                dataKey="anger"
-                stroke="#ef4444"
-                strokeWidth={3}
-              />
+      <Line
+        type="monotone"
+        dataKey="joy"
+        stroke="#f59e0b"
+        strokeWidth={3}
+      />
 
-              <Line
-                type="monotone"
-                dataKey="neutral"
-                stroke="#8b5cf6"
-                strokeWidth={3}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+      <Line
+        type="monotone"
+        dataKey="sadness"
+        stroke="#3b82f6"
+        strokeWidth={3}
+      />
+
+      <Line
+        type="monotone"
+        dataKey="anger"
+        stroke="#ef4444"
+        strokeWidth={3}
+      />
+
+      <Line
+        type="monotone"
+        dataKey="neutral"
+        stroke="#8b5cf6"
+        strokeWidth={3}
+      />
+    </LineChart>
+  </ResponsiveContainer>
+)}
         </motion.div>
       </div>
     </div>
