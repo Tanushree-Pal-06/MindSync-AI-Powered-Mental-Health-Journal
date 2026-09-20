@@ -59,7 +59,7 @@ const Dashboard = () => {
     }
 
     // Fetch entries
-    fetch("http://127.0.0.1:5000/getEntry", {
+    fetch(`${import.meta.env.VITE_API_URL}/getEntry`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -75,7 +75,7 @@ const Dashboard = () => {
       .catch((err) => console.error(err));
 
     // Fetch trends
-    fetch("http://127.0.0.1:5000/getTrends", {
+    fetch(`${import.meta.env.VITE_API_URL}/getTrends`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

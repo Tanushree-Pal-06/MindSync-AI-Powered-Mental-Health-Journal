@@ -31,7 +31,7 @@
 
     if(!userId) return;
 
-    fetch("http://127.0.0.1:5000/insights",{
+    fetch(`${import.meta.env.VITE_API_URL}/insights`,{
 
       method:"POST",
 

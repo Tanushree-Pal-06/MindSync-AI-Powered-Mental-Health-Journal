@@ -36,7 +36,7 @@ const Diary = () => {
     setVoiceResult(null);
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/addEntry", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/addEntry`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -152,7 +152,7 @@ const Diary = () => {
       setVoiceResult(null);
 
       const response = await fetch(
-        "http://127.0.0.1:5000/analyze_audio",
+        `${import.meta.env.VITE_API_URL}/analyze_audio`,
         {
           method: "POST",
           body: formData,

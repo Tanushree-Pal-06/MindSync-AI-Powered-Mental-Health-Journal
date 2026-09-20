@@ -61,7 +61,7 @@ export async function fetchSuggestions(): Promise<SuggestionsResponse> {
 
   const user_id = Number(localStorage.getItem("user_id"));
 
-  const res = await fetch("http://127.0.0.1:5000/suggestions", {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/suggestions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
