@@ -1,18 +1,21 @@
-import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, BarChart3, Clock, Sun, Moon } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Home, BookOpen, BarChart3, Clock, Sparkles,LogOut} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { toast } from "sonner";
 import logo from '@/assets/mindsync-logo.png';
 
 const navItems = [
   { path: '/dashboard', label: 'Home', icon: Home },
   { path: '/diary', label: 'Diary', icon: BookOpen },
   { path: '/insights', label: 'Insights', icon: BarChart3 },
+  { path: '/suggestions', label: 'Suggestions', icon: Sparkles },
   { path: '/history', label: 'History', icon: Clock },
 ];
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -23,11 +26,17 @@ const Navbar = () => {
     }
   }, []);
 
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle('dark');
-    localStorage.setItem('theme', isDark ? 'light' : 'dark');
-  };
+  const handleLogout = () => {
+  localStorage.clear();
+
+  toast.success("Logged out 👋", {
+    description: "See you again soon 💜",
+  });
+
+  setTimeout(() => {
+    navigate("/login");
+  }, 500);
+};
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-lg">
@@ -36,9 +45,11 @@ const Navbar = () => {
           <img
             src={logo}
             alt="MindSync AI"
-            className="h-10 w-10 rounded-xl object-contain drop-shadow-sm md:h-12 md:w-12"
+            width={64}
+            height={64}
+            className="h-12 w-12 object-contain drop-shadow-[0_0_12px_hsl(var(--primary)/0.4)] transition-transform hover:scale-105 md:h-16 md:w-16"
           />
-          <span className="font-display text-xl font-semibold text-foreground md:text-2xl">MindSync AI</span>
+          <span className="font-display text-2xl font-semibold tracking-tight text-foreground md:text-3xl">MindSync AI</span>
         </Link>
 
         {/* Desktop Nav */}
@@ -66,13 +77,36 @@ const Navbar = () => {
             );
           })}
         </div>
+        <div className="flex items-center gap-2">
 
-        <button
-          onClick={toggleTheme}
-          className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </button>
+      
+
+      <button
+        onClick={handleLogout}
+        className="
+          flex items-center gap-2
+          rounded-xl
+          bg-gradient-to-r
+          from-sky-500
+          via-violet-500
+          to-purple-600
+          px-4
+          py-2
+          text-sm
+          font-medium
+          text-white
+          shadow-lg
+          transition-all
+          hover:scale-105
+          hover:shadow-xl
+        "
+      >
+        <LogOut className="h-4 w-4" />
+        Logout
+      </button>
+
+    </div>
+        
       </div>
 
       {/* Mobile Nav */}

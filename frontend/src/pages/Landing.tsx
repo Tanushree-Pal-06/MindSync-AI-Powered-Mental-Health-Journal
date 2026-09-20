@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import logo from '@/assets/mindsync-logo.png';
+import { useNavigate } from "react-router-dom";
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -85,6 +87,7 @@ const features = [
 ];
 
 const Landing = () => {
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const { scrollYProgress } = useScroll();
   const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
@@ -159,9 +162,24 @@ const Landing = () => {
           An AI-powered journal that helps you reflect, analyze, and grow — privately and effortlessly.
         </motion.p>
         <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp} className="mb-14 flex flex-wrap items-center justify-center gap-4">
-          <Button size="lg" className="bg-landing-accent px-8 text-white hover:bg-landing-accent/90" asChild>
-            <Link to="/diary">Start Journaling <ChevronRight className="ml-1 h-4 w-4" /></Link>
-          </Button>
+          <button
+  onClick={() => {
+    const user = localStorage.getItem("user_id");
+
+    if (!user) {
+      alert("Please login or signup to start journaling.");
+      return;
+    }
+
+    // if logged in → go ahead (optional)
+    navigate("/dashboard");
+  }}
+  className="px-6 py-2.5 rounded-lg bg-violet-400 text-white font-medium
+                 shadow-sm hover:bg-violet-500 hover:shadow-md
+                 transition-all duration-300 active:scale-95"
+>
+  Start Journaling
+</button>
           <Button size="lg" variant="ghost" className="border border-white/10 text-landing-muted hover:bg-white/5 hover:text-landing-text" asChild>
             <a href="#how-it-works"><Eye className="mr-2 h-4 w-4" /> See How It Works</a>
           </Button>
@@ -291,7 +309,7 @@ const Landing = () => {
               Join thousands who journal with intention. It only takes a moment to begin.
             </p>
             <Button size="lg" className="bg-landing-accent px-10 text-white hover:bg-landing-accent/90" asChild>
-              <Link to="/diary">Start Journaling Now <ChevronRight className="ml-1 h-4 w-4" /></Link>
+              <Link to="/login">Start Journaling Now <ChevronRight className="ml-1 h-4 w-4" /></Link>
             </Button>
           </motion.div>
         </div>

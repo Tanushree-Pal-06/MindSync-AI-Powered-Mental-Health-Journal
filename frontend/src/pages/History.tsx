@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Calendar } from 'lucide-react';
 import EmotionTag from '@/components/EmotionTag';
 
+
 interface Entry {
   id: number;
   entry: string;

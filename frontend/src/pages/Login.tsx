@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -12,27 +13,36 @@ const Login = () => {
       const response = await fetch("http://127.0.0.1:5000/login", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email,
-          password
-        })
+          password,
+        }),
       });
 
       const data = await response.json();
 
-      alert(data.message);
+      if (data.status === "success") {
+        toast.success("Login Successful!", {
+          description: `Welcome back, ${data.name} 💜`,
+        });
 
-     if (data.status === "success") {
-      localStorage.setItem("user_id", data.user_id);
-      localStorage.setItem("name", data.name);
-      navigate("/diary");
-}
+        localStorage.setItem("user_id", data.user_id);
+        localStorage.setItem("name", data.name);
 
+        navigate("/diary");
+      } else {
+        toast.error("Login Failed", {
+          description: data.message || "Invalid email or password.",
+        });
+      }
     } catch (error) {
-      console.log(error);
-      alert("Login failed");
+      console.error(error);
+
+      toast.error("Server Error", {
+        description: "Couldn't connect to the backend.",
+      });
     }
   };
 
@@ -45,6 +55,7 @@ const Login = () => {
           type="email"
           placeholder="Email"
           className="w-full mb-4 p-3 rounded bg-zinc-800"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
@@ -52,18 +63,29 @@ const Login = () => {
           type="password"
           placeholder="Password"
           className="w-full mb-4 p-3 rounded bg-zinc-800"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 
         <button
           onClick={handleLogin}
-          className="w-full bg-purple-600 py-3 rounded"
+          className="w-full bg-purple-600 py-3 rounded hover:bg-purple-700 transition"
         >
           Login
         </button>
+
+        <p className="mt-4 text-sm text-center text-muted-foreground">
+          Don’t have an account?{" "}
+          <span
+            onClick={() => navigate("/register")}
+            className="text-primary cursor-pointer hover:underline"
+          >
+            Sign up
+          </span>
+        </p>
       </div>
     </div>
   );
 };
 
-export default Login;   
+export default Login;

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -13,26 +14,37 @@ const Register = () => {
       const response = await fetch("http://127.0.0.1:5000/register", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name,
           email,
-          password
-        })
+          password,
+        }),
       });
 
       const data = await response.json();
 
-      alert(data.message);
-
       if (data.status === "success") {
-        navigate("/login");
-      }
+        toast.success("Account Created! 🎉", {
+          description: `Welcome to MindSync, ${name} 💜`,
+        });
 
+        // Give the user a moment to see the toast
+        setTimeout(() => {
+          navigate("/login");
+        }, 1200);
+      } else {
+        toast.error("Registration Failed", {
+          description: data.message || "Couldn't create your account.",
+        });
+      }
     } catch (error) {
-      console.log(error);
-      alert("Something went wrong");
+      console.error(error);
+
+      toast.error("Server Error", {
+        description: "Couldn't connect to the backend.",
+      });
     }
   };
 
@@ -45,6 +57,7 @@ const Register = () => {
           type="text"
           placeholder="Name"
           className="w-full mb-4 p-3 rounded bg-zinc-800"
+          value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
@@ -52,6 +65,7 @@ const Register = () => {
           type="email"
           placeholder="Email"
           className="w-full mb-4 p-3 rounded bg-zinc-800"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
@@ -59,15 +73,26 @@ const Register = () => {
           type="password"
           placeholder="Password"
           className="w-full mb-4 p-3 rounded bg-zinc-800"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 
         <button
           onClick={handleRegister}
-          className="w-full bg-purple-600 py-3 rounded"
+          className="w-full bg-purple-600 py-3 rounded hover:bg-purple-700 transition"
         >
           Register
         </button>
+
+        <p className="mt-4 text-sm text-center text-muted-foreground">
+          Already have an account?{" "}
+          <span
+            onClick={() => navigate("/login")}
+            className="text-primary cursor-pointer hover:underline"
+          >
+            Login
+          </span>
+        </p>
       </div>
     </div>
   );

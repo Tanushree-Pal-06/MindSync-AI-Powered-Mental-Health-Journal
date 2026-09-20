@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles } from 'lucide-react';
+import { Send, Sparkles, Mic } from "lucide-react";
 import EmotionTag from '@/components/EmotionTag';
 import SentimentBadge from '@/components/SentimentBadge';
 import type { Emotion, Sentiment } from '@/lib/mockData';
@@ -18,12 +18,22 @@ const Diary = () => {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [voiceResult, setVoiceResult] = useState<any>(null);
   const [isVoiceLoading, setIsVoiceLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
 
+  const [recordingTime, setRecordingTime] = useState(0);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  const timerRef = useRef<number | null>(null);
+
+  // ✅ TEXT ANALYSIS
   const handleAnalyze = async () => {
     if (!text.trim()) return;
 
     setIsAnalyzing(true);
-    setResult(null);
+    setVoiceResult(null);
 
     try {
       const response = await fetch("http://127.0.0.1:5000/addEntry", {
@@ -32,9 +42,9 @@ const Diary = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-        text,
-        user_id: localStorage.getItem("user_id")
-})
+          text,
+          user_id: parseInt(localStorage.getItem("user_id") || "0"),
+        }),
       });
 
       const data = await response.json();
@@ -44,17 +54,98 @@ const Diary = () => {
         emotions: data.emotions,
       });
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Text Error:", error);
     } finally {
       setIsAnalyzing(false);
     }
   };
+    const startRecording = async () => {
 
+    try {
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+
+      const recorder = new MediaRecorder(stream);
+
+      mediaRecorderRef.current = recorder;
+
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      recorder.onstop = () => {
+
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/wav",
+        });
+
+        const file = new File(
+          [audioBlob],
+          "recording.wav",
+          {
+            type: "audio/wav",
+          }
+        );
+
+        setAudioFile(file);
+
+        stream.getTracks().forEach(track => track.stop());
+
+      };
+
+      recorder.start();
+
+      setRecordingTime(0);
+
+      setIsRecording(true);
+
+      timerRef.current = window.setInterval(() => {
+
+        setRecordingTime(prev => prev + 1);
+
+      },1000);
+
+    }
+
+    catch(err){
+
+      alert("Microphone permission denied.");
+
+      console.log(err);
+
+    }
+
+  };
+  const stopRecording = () => {
+
+  mediaRecorderRef.current?.stop();
+
+  setIsRecording(false);
+
+  if(timerRef.current){
+
+    clearInterval(timerRef.current);
+
+  }
+
+};
+
+  // ✅ VOICE ANALYSIS (FIXED)
   const handleVoiceAnalyze = async () => {
-    if (!audioFile) return;
+    setResult(null);
+    if (!audioFile) {
+      alert("Please select a .wav file");
+      return;
+    }
+    
 
     const formData = new FormData();
     formData.append("audio", audioFile);
+    formData.append("user_id", localStorage.getItem("user_id") || "0");
 
     try {
       setIsVoiceLoading(true);
@@ -69,10 +160,12 @@ const Diary = () => {
       );
 
       const data = await response.json();
+      console.log("Voice Result:", data);
+
       setVoiceResult(data);
 
     } catch (error) {
-      console.error(error);
+      console.error("Voice Error:", error);
     } finally {
       setIsVoiceLoading(false);
     }
@@ -83,7 +176,6 @@ const Diary = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
       >
         <h1 className="mb-2 font-display text-3xl font-bold text-foreground">
           Write Your Thoughts
@@ -94,18 +186,15 @@ const Diary = () => {
         </p>
       </motion.div>
 
-      {/* TEXT ANALYSIS CARD */}
+      {/* TEXT CARD (UNCHANGED UI) */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: 0.5 }}
         className="card-calm rounded-2xl p-6"
       >
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Write about your day..."
-          className="min-h-[220px] w-full resize-none rounded-xl border border-border bg-background p-4 font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30"
+          className="min-h-[220px] w-full resize-none rounded-xl border border-border bg-background p-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30"
         />
 
         <div className="mt-4 flex items-center justify-between">
@@ -116,11 +205,11 @@ const Diary = () => {
           <button
             onClick={handleAnalyze}
             disabled={!text.trim() || isAnalyzing}
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm text-primary-foreground disabled:opacity-50"
           >
             {isAnalyzing ? (
               <>
-                <Sparkles className="h-4 w-4 animate-pulse-soft" />
+                <Sparkles className="h-4 w-4 animate-pulse" />
                 Analyzing...
               </>
             ) : (
@@ -133,141 +222,213 @@ const Diary = () => {
         </div>
       </motion.div>
 
-      {/* VOICE UPLOAD CARD */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
-        className="mt-6 card-calm rounded-2xl p-6"
+      {/* VOICE CARD */}
+      {/* VOICE CARD */}
+<motion.div className="mt-6 card-calm rounded-2xl p-6">
+
+  <h2 className="mb-2 text-xl font-semibold text-foreground">
+    Voice Emotion Analysis
+  </h2>
+
+  <p className="mb-6 text-sm text-muted-foreground">
+    Record your thoughts and let MindSync analyze both your voice and emotions.
+  </p>
+
+  <div className="flex flex-col items-center gap-5">
+
+    {/* Mic Button */}
+    {!isRecording ? (
+
+      <motion.button
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={startRecording}
+        className="
+          flex
+          h-16
+          w-16
+          items-center
+          justify-center
+          rounded-full
+          bg-gradient-to-br
+          from-sky-500
+          via-violet-500
+          to-purple-600
+          shadow-lg
+          transition-all
+        "
       >
-        <h2 className="mb-4 text-xl font-semibold text-foreground">
-          Voice Emotion Analysis
-        </h2>
+        <Mic className="h-7 w-7 text-white" />
+      </motion.button>
 
-        <input
-          type="file"
-          accept="audio/*"
-          onChange={(e) =>
-            setAudioFile(e.target.files?.[0] || null)
-          }
-          className="mb-4 block w-full text-sm"
-        />
+    ) : (
 
-        <button
-          onClick={handleVoiceAnalyze}
-          disabled={!audioFile || isVoiceLoading}
-          className="rounded-xl bg-primary px-6 py-2.5 text-primary-foreground"
-        >
-          {isVoiceLoading ? "Analyzing..." : "Upload Audio"}
-        </button>
-      </motion.div>
+      <motion.button
+        animate={{
+          scale: [1, 1.1, 1]
+        }}
+        transition={{
+          repeat: Infinity,
+          duration: 1
+        }}
+        onClick={stopRecording}
+        className="
+          flex
+          h-16
+          w-16
+          items-center
+          justify-center
+          rounded-full
+          bg-gradient-to-br
+          from-purple-600
+          via-fuchsia-500
+          to-sky-500
+          shadow-lg
+        "
+      >
+        <div className="h-4 w-4 rounded-sm bg-white" />
+      </motion.button>
 
-      {/* VOICE RESULT CARD */}
-      {voiceResult && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-6 card-calm rounded-2xl p-6"
-        >
-          <h2 className="mb-4 text-xl font-semibold text-foreground">
-            Voice Results
-          </h2>
+    )}
 
-          <p className="mb-2">
-            <strong>Transcribed Text:</strong>{" "}
-            {voiceResult.transcribed_text}
-          </p>
+    {/* Status */}
+    <div className="text-center">
 
-          <p className="mb-2">
-            <strong>Text Emotion:</strong>{" "}
-            {voiceResult.text_emotion}
-          </p>
+      <p className="font-medium text-foreground">
 
-          <p className="mb-2">
-            <strong>Voice Emotion:</strong>{" "}
-            {voiceResult.voice_emotion}
-          </p>
+        {isRecording
+          ? "Recording..."
+          : audioFile
+          ? "Recording Ready ✅"
+          : "Tap to start recording"}
 
-          <p>
-            <strong>Final Emotion:</strong>{" "}
-            {voiceResult.final_result}
-          </p>
-        </motion.div>
+      </p>
+
+      {isRecording && (
+
+        <p className="mt-1 text-lg font-semibold text-violet-500">
+
+          {recordingTime}s
+
+        </p>
+
       )}
 
-      {/* TEXT RESULT CARD */}
+    </div>
+
+    {/* Analyze Button */}
+
+    {audioFile && (
+
+      <motion.button
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={handleVoiceAnalyze}
+        disabled={isVoiceLoading}
+        className="
+          rounded-xl
+          bg-gradient-to-r
+          from-sky-500
+          via-violet-500
+          to-purple-600
+          px-6
+          py-2.5
+          font-medium
+          text-white
+          shadow-md
+          disabled:opacity-50
+        "
+      >
+
+        {isVoiceLoading
+          ? "Analyzing..."
+          : "✨ Analyze Recording"}
+
+      </motion.button>
+
+    )}
+
+  </div>
+
+</motion.div>
+{/* VOICE RESULT */}
+{voiceResult && (
+  <motion.div className="mt-6 card-calm rounded-2xl p-6">
+
+    <h2 className="mb-4 text-xl font-semibold text-foreground">
+      Voice Results
+    </h2>
+
+    <p className="mb-4">
+      <strong>Transcribed:</strong>{" "}
+      {voiceResult.transcribed_text}
+    </p>
+
+    <p className="mb-3">
+      <strong>Sentiment:</strong>{" "}
+      <span className="capitalize">
+        {voiceResult.sentiment}
+      </span>
+    </p>
+
+    <div className="mt-4">
+      <h3 className="mb-3 text-lg font-semibold text-foreground">
+        Detected Emotions
+      </h3>
+
+      {voiceResult.emotions?.map((emotion, index) => (
+        <div
+          key={index}
+          className="flex items-center justify-between rounded-xl bg-white/10 px-4 py-3 mb-3"
+        >
+          <span className="capitalize text-foreground">
+            {emotion.name}
+          </span>
+
+          <span className="font-semibold text-violet-300">
+            {(emotion.confidence * 100).toFixed(0)}%
+          </span>
+        </div>
+      ))}
+    </div>
+
+    <p className="mt-4 mb-2">
+      <strong>Voice Emotion:</strong>{" "}
+      <span className="capitalize">
+        {voiceResult.voice_emotion}
+      </span>
+    </p>
+
+    <p>
+      <strong>Final Emotion:</strong>{" "}
+      <span className="capitalize">
+        {voiceResult.final_result}
+      </span>
+    </p>
+
+  </motion.div>
+)}
+
+      {/* TEXT RESULT */}
       <AnimatePresence>
         {result && (
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}
             className="mt-6 card-calm rounded-2xl p-6"
           >
-            <h2 className="mb-4 font-display text-xl font-semibold text-foreground">
+            <h2 className="mb-4 text-xl font-semibold text-foreground">
               Analysis Results
             </h2>
 
-            <div className="mb-5">
-              <p className="mb-2 text-sm font-medium text-muted-foreground">
-                Overall Sentiment
-              </p>
+            <SentimentBadge sentiment={result.sentiment} />
 
-              <SentimentBadge sentiment={result.sentiment} />
-            </div>
-
-            <div className="mb-5">
-              <p className="mb-3 text-sm font-medium text-muted-foreground">
-                Detected Emotions
-              </p>
-
-              <div className="flex flex-wrap gap-2">
-                {result.emotions.map((e) => (
-                  <EmotionTag
-                    key={e.name}
-                    emotion={e.name}
-                    confidence={e.confidence}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-3 text-sm font-medium text-muted-foreground">
-                Confidence Levels
-              </p>
-
-              <div className="space-y-3">
-                {result.emotions.map((e) => (
-                  <div
-                    key={e.name}
-                    className="flex items-center gap-3"
-                  >
-                    <span className="w-20 text-sm capitalize text-foreground">
-                      {e.name}
-                    </span>
-
-                    <div className="flex-1 overflow-hidden rounded-full bg-muted h-2.5">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{
-                          width: `${e.confidence * 100}%`,
-                        }}
-                        transition={{
-                          duration: 0.8,
-                          delay: 0.2,
-                        }}
-                        className="h-full rounded-full bg-primary"
-                      />
-                    </div>
-
-                    <span className="text-xs text-muted-foreground w-10 text-right">
-                      {Math.round(e.confidence * 100)}%
-                    </span>
-                  </div>
-                ))}
-              </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {result.emotions.map((e) => (
+                <EmotionTag
+                  key={e.name}
+                  emotion={e.name}
+                  confidence={e.confidence}
+                />
+              ))}
             </div>
           </motion.div>
         )}

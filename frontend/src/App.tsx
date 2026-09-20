@@ -10,35 +10,46 @@ import Index from "./pages/Index";
 import Diary from "./pages/Diary";
 import Insights from "./pages/Insights";
 import History from "./pages/History";
+import Suggestions from "./pages/Suggestions";
 import NotFound from "./pages/NotFound";
-import "@/styles/landing.css";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import "@/styles/landing.css";
+import { AIFriend, AIFriendProvider } from "./components/AI Friend";
 
 const queryClient = new QueryClient();
 
 const AppLayout = () => {
   const location = useLocation();
   const isLanding = location.pathname === '/';
+  // for navbar security 
+  const hideNavbar =
+  location.pathname === "/login" ||
+  location.pathname === "/register";
 
   if (isLanding) {
     return <Landing />;
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <DiaryBackground />
-      <Navbar />
-      <Routes>
-        <Route path="/dashboard" element={<Index />} />
-        <Route path="/diary" element={<Diary />} />
-        <Route path="/insights" element={<Insights />} />
-        <Route path="/history" element={<History />} />
-        <Route path="*" element={<NotFound />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-      </Routes>
-    </div>
+    
+    <AIFriendProvider>
+      <div className="min-h-screen bg-background overflow-visible">
+        <DiaryBackground />
+        {!hideNavbar && <Navbar />}
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Index />} />
+          <Route path="/diary" element={<Diary />} />
+          <Route path="/insights" element={<Insights />} />
+          <Route path="/suggestions" element={<Suggestions />} />
+          <Route path="/history" element={<History />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <AIFriend />
+      </div>
+    </AIFriendProvider>
   );
 };
 
